@@ -1,0 +1,103 @@
+# ============================================================================
+# .gitignore - Files to exclude from version control
+# ============================================================================
+
+# Environment Variables (CRITICAL - NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+
+# Python Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python Compiled Files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE / Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary Files
+*.tmp
+*.bak
+*.log
+*.OriginalBackup
+
+# OS Files
+.DS_Store
+Thumbs.db
+.windows-build-helper/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets & Credentials (CRITICAL)
+secrets.json
+credentials.json
+config.local.py
+
+# SSL Certificates
+*.pem
+*.key
+*.crt
+*.csr
+
+# Dependencies Lock Files (Optional - can include for reproducibility)
+# Pipenv
+# Pipfile.lock
+
+# Poetry
+# poetry.lock
+
+# Cloud & Deployment
+.env.production
+.env.staging
+firebase-key.json
+gcp-key.json
+aws-credentials
+
+# MongoDB
+.mongodump/
+dump/
+
+# Misc
+*.pid
+.env.*.swp

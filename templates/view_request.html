@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}View Request - Secure Legal Service Platform{% endblock %}
+
+{% block content %}
+<section class="request-container reveal-up">
+    <!-- Case header -->
+    <div class="request-header">
+        <div>
+            <h2><i class="fa-solid fa-file-lines"></i> Case Details</h2>
+            <p>Securely reviewed request information.</p>
+        </div>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="request-card">
+        <div class="request-info">
+            <div class="info-row">
+                <span class="label">Case Type</span>
+                <span class="value">{{ request.case_type | title }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Status</span>
+                <span class="status-badge status-{{ request.status }}">{{ request.status | replace('_', ' ') | title }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Submitted</span>
+                <span class="value">{{ request.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+            </div>
+
+            {% if request.updated_at != request.created_at %}
+            <div class="info-row">
+                <span class="label">Last Updated</span>
+                <span class="value">{{ request.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="case-description">
+            <h3><i class="fa-solid fa-scale-balanced"></i> Case Description</h3>
+            <div class="description-content">{{ request.description }}</div>
+
+            <div class="encryption-notice">
+                <i class="fa-solid fa-lock"></i> This case description was encrypted with AES-256 before storage and decrypted securely for viewing.
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

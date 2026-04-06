@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Admin Panel{% endblock %}
+
+{% block content %}
+<section class="dashboard reveal-up">
+    <!-- Admin user management header -->
+    <div class="admin-header">
+        <div>
+            <h2><i class="fa-solid fa-users-gear"></i> User Management</h2>
+            <p>Manage account status, roles, and legal access permissions.</p>
+        </div>
+        <div class="header-actions">
+            <span class="tag"><i class="fa-solid fa-id-badge"></i> Role: Admin</span>
+            <a href="{{ url_for('admin_requests') }}" class="btn btn-secondary">Manage Requests</a>
+            <a href="{{ url_for('admin_add_lawyer') }}" class="btn btn-primary">Add Lawyer</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa-solid fa-address-book"></i> Registered Users ({{ users|length }})</h3>
+
+        {% if users %}
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <span class="role-badge role-{{ user.role }}">
+                                    {{ user.role | capitalize }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ 'active' if user.is_active else 'inactive' }}">
+                                    {{ 'Active' if user.is_active else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('update_user_role', user_id=user._id) }}" class="inline-form">
+                                    <select name="role" required>
+                                        <option value="client" {% if user.role == 'client' %}selected{% endif %}>Client</option>
+                                        <option value="lawyer" {% if user.role == 'lawyer' %}selected{% endif %}>Lawyer</option>
+                                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-info">Update Role</button>
+                                </form>
+
+                                {% if user.is_active %}
+                                    <form method="POST" action="{{ url_for('deactivate_user', user_id=user._id) }}" class="inline-form">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Deactivate this user?')">Deactivate</button>
+                                    </form>
+                                {% else %}
+                                    <form method="POST" action="{{ url_for('activate_user', user_id=user._id) }}" class="inline-form">
+                                        <button type="submit" class="btn btn-sm btn-success">Activate</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No users found.</p>
+        {% endif %}
+    </div>
+
+    <div class="security-info card">
+        <h3><i class="fa-solid fa-user-shield"></i> User Management Security</h3>
+        <ul>
+            <li><strong>Password Security:</strong> All passwords are hashed with bcrypt (12 rounds)</li>
+            <li><strong>2-Factor Authentication:</strong> All users must verify with OTP on login</li>
+            <li><strong>Access Control:</strong> Users can only access data relevant to their role</li>
+            <li><strong>Soft Deletion:</strong> Deactivating users preserves historical data</li>
+            <li><strong>Audit Trail:</strong> All user management actions are logged</li>
+            <li><strong>Role Management:</strong> Clear role separation (Client, Lawyer, Admin)</li>
+        </ul>
+    </div>
+</section>
+{% endblock %}

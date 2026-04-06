@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Respond to Request - Secure Legal Service Platform{% endblock %}
+
+{% block content %}
+<section class="response-container reveal-up">
+    <!-- Header and navigation -->
+    <div class="response-header">
+        <div>
+            <h2><i class="fa-solid fa-gavel"></i> Respond to Legal Request</h2>
+            <p>Review the case, provide professional guidance, and update the status.</p>
+        </div>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="response-layout">
+        <div class="request-details">
+            <div class="card">
+                <h3><i class="fa-solid fa-folder-open"></i> Case Information</h3>
+
+                <div class="case-info">
+                    <div class="info-item">
+                        <label>Case Type</label>
+                        <span>{{ request.case_type | title }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Current Status</label>
+                        <span class="status-badge status-{{ request.status }}">{{ request.status | replace('_', ' ') | title }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Client Email</label>
+                        <span>{{ request.user_email }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <label>Submitted</label>
+                        <span>{{ request.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                    </div>
+                </div>
+
+                <div class="case-description">
+                    <h4><i class="fa-solid fa-file-lines"></i> Case Description</h4>
+                    <div class="description-text">{{ request.description }}</div>
+                    <p class="encryption-note"><i class="fa-solid fa-lock"></i> Description was decrypted securely for your review.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="response-form-section">
+            <div class="card">
+                <h3><i class="fa-solid fa-pen-to-square"></i> Submit Your Response</h3>
+
+                <form method="POST" class="response-form">
+                    <div class="form-group">
+                        <label for="response">Your Legal Response</label>
+                        <textarea
+                            id="response"
+                            name="response"
+                            required
+                            rows="12"
+                            placeholder="Provide your professional legal analysis and recommendations..."
+                            maxlength="10000"
+                        ></textarea>
+                        <small>Maximum 10000 characters</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Update Case Status</label>
+                        <select id="status" name="status" required>
+                            <option value="in_progress" {% if request.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="pending_client_action">Pending Client Action</option>
+                            <option value="completed">Completed</option>
+                            <option value="rejected">Unable to Handle</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Submit Response</button>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+
+                    <div class="security-reminder">
+                        <p>
+                            Your response is logged, timestamped, encrypted in transit, and visible to the client through the platform workflow.
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

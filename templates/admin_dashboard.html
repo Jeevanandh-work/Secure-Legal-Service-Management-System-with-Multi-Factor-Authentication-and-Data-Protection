@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Secure Legal Service Platform{% endblock %}
+
+{% block content %}
+<section class="dashboard reveal-up">
+    <!-- Dashboard header -->
+    <div class="dashboard-header">
+        <div>
+            <h2><i class="fa-solid fa-shield-halved"></i> Admin Dashboard</h2>
+            <p>System administrator: <strong>{{ user_name }}</strong></p>
+        </div>
+        <div class="header-actions">
+            <span class="tag"><i class="fa-solid fa-id-badge"></i> Role: Admin</span>
+            <span class="tag"><i class="fa-solid fa-lock"></i> Encrypted Data</span>
+        </div>
+    </div>
+
+    <!-- Statistics cards -->
+    <div class="stats-grid">
+        <div class="stat-card legal">
+            <i class="fa-solid fa-users"></i>
+            <div class="stat-number">{{ users_count }}</div>
+            <div class="stat-label">Total Users</div>
+            <a href="{{ url_for('admin_users') }}" class="stat-link">Manage Users →</a>
+        </div>
+        
+        <div class="stat-card progress">
+            <i class="fa-solid fa-briefcase"></i>
+            <div class="stat-number">{{ requests_count }}</div>
+            <div class="stat-label">Total Cases</div>
+            <a href="{{ url_for('admin_requests') }}" class="stat-link">Manage Requests →</a>
+        </div>
+        
+        <div class="stat-card secure">
+            <i class="fa-solid fa-file-shield"></i>
+            <div class="stat-number">{{ logs_count }}</div>
+            <div class="stat-label">Activity Logs</div>
+            <a href="{{ url_for('admin_logs') }}" class="stat-link">View Logs →</a>
+        </div>
+        
+        <div class="stat-card legal">
+            <i class="fa-solid fa-clock"></i>
+            <div class="stat-number">{{ pending_requests_count }}</div>
+            <div class="stat-label">Pending Cases</div>
+            <a href="{{ url_for('admin_requests') }}" class="stat-link">Needs Assignment →</a>
+        </div>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="card">
+        <h3><i class="fa-solid fa-timeline"></i> Recent Activity</h3>
+        
+        {% if recent_logs %}
+            <table class="logs-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in recent_logs %}
+                        <tr class="action-{{ log.action.lower() }}">
+                            <td>{{ log.user }}</td>
+                            <td>
+                                <span class="action-badge action-{{ log.action }}">
+                                    {{ log.action }}
+                                </span>
+                            </td>
+                            <td>{{ log.details }}</td>
+                            <td>{{ log.timestamp_str }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No activity logged yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Admin action row -->
+    <div class="admin-actions card">
+        <h3><i class="fa-solid fa-gears"></i> Administrator Actions</h3>
+        <div class="action-buttons">
+            <a href="{{ url_for('admin_users') }}" class="btn btn-primary">Manage Users</a>
+            <a href="{{ url_for('admin_requests') }}" class="btn btn-primary">Manage Requests</a>
+            <a href="{{ url_for('admin_add_lawyer') }}" class="btn btn-primary">Add New Lawyer</a>
+            <a href="{{ url_for('admin_logs') }}" class="btn btn-primary">View All Logs</a>
+        </div>
+    </div>
+
+</section>
+{% endblock %}

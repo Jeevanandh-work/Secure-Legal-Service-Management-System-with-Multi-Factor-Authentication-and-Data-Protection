@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Add Lawyer - Admin Panel{% endblock %}
+
+{% block content %}
+<section class="dashboard reveal-up">
+    <div class="admin-header">
+        <div>
+            <h2><i class="fa-solid fa-user-plus"></i> Add New Lawyer</h2>
+            <p>Create a secure lawyer account with specialization and initial credentials.</p>
+        </div>
+        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">Back to Users</a>
+    </div>
+
+    <div class="form-layout">
+        <div class="form-card">
+            <h3><i class="fa-solid fa-id-card"></i> Lawyer Registration Form</h3>
+
+            <form method="POST" class="admin-form">
+                <div class="form-group">
+                    <label for="name">Lawyer Name</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-user input-icon"></i>
+                        <input type="text" id="name" name="name" required placeholder="Full name" maxlength="100">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                        <input type="email" id="email" name="email" required placeholder="lawyer@example.com" maxlength="120">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="specialization">Area of Specialization</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-scale-balanced input-icon"></i>
+                        <select id="specialization" name="specialization" required>
+                            <option value="">Select specialization</option>
+                            <option value="criminal">Criminal Law</option>
+                            <option value="civil">Civil Law</option>
+                            <option value="family">Family Law</option>
+                            <option value="corporate">Corporate Law</option>
+                            <option value="intellectual">Intellectual Property</option>
+                            <option value="immigration">Immigration Law</option>
+                            <option value="employment">Employment Law</option>
+                            <option value="real_estate">Real Estate Law</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Initial Password</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="password" name="password" required placeholder="Minimum 8 characters" minlength="8">
+                    </div>
+                    <small>Password will be hashed with bcrypt. The lawyer should change it on first login.</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Lawyer</button>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="info-section">
+            <div class="info-card">
+                <h3><i class="fa-solid fa-shield-halved"></i> Security Features</h3>
+                <ul>
+                    <li>Password hashing with bcrypt</li>
+                    <li>Unique email enforcement</li>
+                    <li>2FA required for login</li>
+                    <li>Encrypted case access</li>
+                    <li>Audit logging enabled</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h3><i class="fa-solid fa-list-check"></i> What Happens Next</h3>
+                <ol>
+                    <li>Lawyer account is created securely</li>
+                    <li>Specialization is stored with the profile</li>
+                    <li>Lawyer logs in and verifies OTP</li>
+                    <li>Admin assigns cases as needed</li>
+                    <li>Lawyer reviews encrypted case details</li>
+                </ol>
+            </div>
+
+            <div class="info-card">
+                <h3><i class="fa-solid fa-scale-unbalanced"></i> Lawyer Responsibilities</h3>
+                <ul>
+                    <li>Review assigned legal requests</li>
+                    <li>Maintain client confidentiality</li>
+                    <li>Provide legal analysis and updates</li>
+                    <li>Handle data with care</li>
+                    <li>Log out after use</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

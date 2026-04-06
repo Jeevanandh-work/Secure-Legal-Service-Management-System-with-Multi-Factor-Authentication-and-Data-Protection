@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Secure Legal Services Platform{% endblock %}
+
+{% block content %}
+<section id="home" class="hero reveal-up">
+    <!-- Hero with legal and security positioning -->
+    <div class="hero-content">
+        <span class="tag"><i class="fa-solid fa-shield-halved"></i> Secure Legal Tech</span>
+        <h1>Secure Legal Services Platform</h1>
+        <p>
+            A trusted digital platform for confidential legal support with MFA authentication,
+            encrypted case records, and role-based access for clients, lawyers, and administrators.
+        </p>
+        <div class="hero-actions">
+            {% if session.user_id %}
+                <a href="{{ url_for('request_service') }}" class="btn btn-primary">Get Legal Help</a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Go to Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-primary">Get Legal Help</a>
+                <a href="{{ url_for('login') }}" class="btn btn-secondary">Login</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-card">
+        <h3><i class="fa-solid fa-scale-balanced"></i> Built for Legal Operations</h3>
+        <ul class="list-tight">
+            <li><i class="fa-solid fa-lock"></i> End-to-end confidentiality mindset</li>
+            <li><i class="fa-solid fa-user-check"></i> Role-specific access control</li>
+            <li><i class="fa-solid fa-envelope-circle-check"></i> OTP verification workflow</li>
+            <li><i class="fa-solid fa-file-shield"></i> Auditable legal case actions</li>
+        </ul>
+    </div>
+</section>
+
+<section id="services" class="section reveal-up delay-1">
+    <!-- Services section -->
+    <h2 class="section-title">Our Services</h2>
+    <div class="service-grid">
+        <article class="service-card">
+            <i class="fa-solid fa-gavel"></i>
+            <h3>Case Consultation</h3>
+            <p>Submit and track legal service requests securely from one portal.</p>
+        </article>
+        <article class="service-card">
+            <i class="fa-solid fa-scale-balanced"></i>
+            <h3>Lawyer Assignment</h3>
+            <p>Qualified legal professionals respond to assigned matters with status updates.</p>
+        </article>
+        <article class="service-card">
+            <i class="fa-solid fa-shield"></i>
+            <h3>Compliance Logging</h3>
+            <p>Administrative audit trails help maintain operational transparency.</p>
+        </article>
+    </div>
+</section>
+
+<section id="about" class="section reveal-up delay-2">
+    <!-- Why choose us section -->
+    <h2 class="section-title">Why Choose Us</h2>
+    <div class="why-grid">
+        <article class="card">
+            <h3><i class="fa-solid fa-user-group"></i> Multi-Role Platform</h3>
+            <p>Dedicated experience for clients, lawyers, and administrators.</p>
+        </article>
+        <article class="card">
+            <h3><i class="fa-solid fa-business-time"></i> Real-Time Tracking</h3>
+            <p>Monitor request lifecycle from submission to legal response.</p>
+        </article>
+        <article class="card">
+            <h3><i class="fa-solid fa-laptop-shield"></i> Professional Security</h3>
+            <p>Strong authentication and encrypted storage for sensitive legal information.</p>
+        </article>
+    </div>
+</section>
+
+<section class="section reveal-up delay-2">
+    <!-- Security feature highlights -->
+    <h2 class="section-title">Security Features</h2>
+    <div class="feature-inline center">
+        <span><i class="fa-solid fa-key"></i> Multi-Factor Authentication</span>
+        <span><i class="fa-solid fa-database"></i> Encrypted Data</span>
+        <span><i class="fa-solid fa-user-lock"></i> Role-Based Access</span>
+        <span><i class="fa-solid fa-file-shield"></i> Activity Logging</span>
+    </div>
+</section>
+
+<section id="contact" class="section reveal-up delay-2">
+    <!-- Contact footer section -->
+    <div class="card text-center">
+        <h2 class="section-title">Contact</h2>
+        <p>Email: support@lexshield.example</p>
+        <p>Phone: +1 555 010 2244</p>
+        <p>Address: 45 Justice Avenue, Legal District</p>
+    </div>
+</section>
+{% endblock %}

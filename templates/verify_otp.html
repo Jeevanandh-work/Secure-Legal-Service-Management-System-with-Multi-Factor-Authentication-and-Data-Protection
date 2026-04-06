@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Verify OTP - Secure Legal Service Platform{% endblock %}
+
+{% block content %}
+<section class="auth-shell auth-shell-center">
+    <!-- OTP verification card -->
+    <div class="auth-card reveal-up">
+        <div class="section-title-wrap">
+            <h2><i class="fa-solid fa-key"></i> Verify One-Time Password</h2>
+            <span class="tag">MFA Active</span>
+        </div>
+
+        <p class="otp-message">
+            We sent a 6-digit code to <strong>{{ email }}</strong>
+        </p>
+
+        {% if debug_otp %}
+        <div class="alert alert-info">
+            Development fallback OTP: <strong>{{ debug_otp }}</strong>
+        </div>
+        {% endif %}
+
+        <form method="POST" class="otp-form">
+            <div class="form-group">
+                <label for="otp">Enter 6-Digit OTP:</label>
+                <div class="input-icon-wrap">
+                    <i class="fa-solid fa-hashtag input-icon"></i>
+                    <input
+                        type="text"
+                        id="otp"
+                        name="otp"
+                        required
+                        placeholder="000000"
+                        maxlength="6"
+                        pattern="[0-9]{6}"
+                        inputmode="numeric"
+                        autocomplete="off"
+                    >
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Verify OTP</button>
+        </form>
+
+        <div class="otp-info">
+            <p>Did not receive the OTP? Check spam folder or request a fresh login.</p>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary">Back to Login</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

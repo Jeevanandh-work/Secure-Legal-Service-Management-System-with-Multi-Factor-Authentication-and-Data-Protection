@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Legal Request - Secure Legal Service Platform{% endblock %}
+
+{% block content %}
+<section class="form-container reveal-up">
+    <!-- Request submission form -->
+    <div class="form-card">
+        <div class="section-title-wrap">
+            <h2><i class="fa-solid fa-file-circle-plus"></i> Submit Legal Request</h2>
+            <span class="tag"><i class="fa-solid fa-lock"></i> Encrypted Data</span>
+        </div>
+
+        <p class="form-description">
+            Share your case details securely. The description is encrypted before storage and visible only to authorized legal staff.
+        </p>
+
+        <form method="POST" class="request-form">
+            <div class="form-group">
+                <label for="case_type">Case Type</label>
+                <div class="input-icon-wrap">
+                    <i class="fa-solid fa-scale-balanced input-icon"></i>
+                    <select id="case_type" name="case_type" required>
+                        <option value="">Select a case type</option>
+                        <option value="criminal">Criminal Law</option>
+                        <option value="civil">Civil Law</option>
+                        <option value="family">Family Law</option>
+                        <option value="corporate">Corporate Law</option>
+                        <option value="intellectual">Intellectual Property</option>
+                        <option value="immigration">Immigration Law</option>
+                        <option value="employment">Employment Law</option>
+                        <option value="real_estate">Real Estate Law</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Case Description</label>
+                <textarea
+                    id="description"
+                    name="description"
+                    required
+                    rows="10"
+                    placeholder="Provide detailed information about your case..."
+                    maxlength="5000"
+                ></textarea>
+                <small>Maximum 5000 characters</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Submit Request</button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Security explanation panel -->
+    <div class="security-info-section">
+        <div class="info-box">
+            <h4><i class="fa-solid fa-shield-halved"></i> Encryption Process</h4>
+            <ol>
+                <li><strong>Validation:</strong> Request text is checked before storage.</li>
+                <li><strong>AES-256:</strong> Case details are encrypted using a unique IV.</li>
+                <li><strong>TLS Storage:</strong> Data is stored over an encrypted database connection.</li>
+                <li><strong>Access Control:</strong> Only assigned lawyers can read the case.</li>
+                <li><strong>Audit Trail:</strong> Access is logged and timestamped.</li>
+            </ol>
+        </div>
+
+        <div class="info-box">
+            <h4><i class="fa-solid fa-lock"></i> What Gets Protected</h4>
+            <ul>
+                <li>Case description content</li>
+                <li>Encrypted storage at rest</li>
+                <li>Random IV for every submission</li>
+                <li>Restricted access by role</li>
+            </ul>
+        </div>
+
+        <div class="info-box privacy-notice">
+            <h4><i class="fa-solid fa-user-shield"></i> Privacy & Confidentiality</h4>
+            <p>
+                Your legal request is handled as confidential information. It remains encrypted and is only exposed to authorized personnel within the platform workflow.
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

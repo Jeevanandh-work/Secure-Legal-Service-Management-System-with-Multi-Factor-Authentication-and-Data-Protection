@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Terms & Privacy - Secure Legal Service Platform{% endblock %}
+
+{% block content %}
+<section class="card reveal-up" style="max-width: 1000px; margin: 0 auto;">
+    <div class="section-title-wrap">
+        <h2><i class="fa-solid fa-file-shield"></i> Terms & Privacy</h2>
+        <span class="tag">Policy Overview</span>
+    </div>
+
+    <p>This platform is designed for secure legal service communication between clients, lawyers, and administrators.</p>
+
+    <h3>Data Usage</h3>
+    <ul class="list-tight">
+        <li>User account data is used only for authentication and service delivery.</li>
+        <li>Case details are processed only for legal request workflows.</li>
+        <li>Activity logs are maintained for audit and security monitoring.</li>
+    </ul>
+
+    <h3>Privacy Statement</h3>
+    <ul class="list-tight">
+        <li>Passwords are never stored in plaintext and are hashed using bcrypt.</li>
+        <li>Sensitive case descriptions are encrypted using AES-256 before storage.</li>
+        <li>Role-based access control restricts unauthorized data access.</li>
+        <li>Session and security controls protect user accounts.</li>
+    </ul>
+
+    <h3>User Responsibilities</h3>
+    <ul class="list-tight">
+        <li>Use strong passwords and do not share OTPs.</li>
+        <li>Log out after completing your session.</li>
+        <li>Report suspicious activity immediately.</li>
+    </ul>
+
+    <h3>Service and Compliance</h3>
+    <p>By using this service, users agree to secure handling of legal information and policy-compliant usage of the platform.</p>
+</section>
+{% endblock %}

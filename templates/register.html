@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Secure Legal Service Platform{% endblock %}
+
+{% block content %}
+<section class="auth-shell auth-shell-center">
+    <!-- Registration form -->
+    <div class="auth-card reveal-up">
+        <div class="section-title-wrap">
+            <h2><i class="fa-solid fa-id-card"></i> Create Account</h2>
+            <span class="tag">Encrypted Data</span>
+        </div>
+
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="name">Full Name:</label>
+                <div class="input-icon-wrap">
+                    <i class="fa-solid fa-user input-icon"></i>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        required
+                        placeholder="Your full name"
+                        maxlength="100"
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address:</label>
+                <div class="input-icon-wrap">
+                    <i class="fa-solid fa-envelope input-icon"></i>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        placeholder="your@email.com"
+                        maxlength="120"
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <div class="input-icon-wrap">
+                    <i class="fa-solid fa-lock input-icon"></i>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        placeholder="Minimum 8 characters"
+                        minlength="8"
+                    >
+                </div>
+                <small>Use at least 8 characters with letters and numbers.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password:</label>
+                <div class="input-icon-wrap">
+                    <i class="fa-solid fa-check-double input-icon"></i>
+                    <input
+                        type="password"
+                        id="confirm_password"
+                        name="confirm_password"
+                        required
+                        placeholder="Re-enter your password"
+                        minlength="8"
+                    >
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Already registered? <a href="{{ url_for('login') }}">Sign in</a></p>
+        </div>
+
+        <p class="terms-note">By registering, you accept platform terms and privacy protections.</p>
+    </div>
+
+</section>
+{% endblock %}

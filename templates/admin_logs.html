@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Logs - Admin Panel{% endblock %}
+
+{% block content %}
+<section class="dashboard reveal-up">
+    <!-- Log page header -->
+    <div class="admin-header">
+        <div>
+            <h2><i class="fa-solid fa-scroll"></i> Activity Logs</h2>
+            <p>Security audit trail and operational history.</p>
+        </div>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa-solid fa-timeline"></i> System Activity Log (Latest 100 entries)</h3>
+
+        {% if recent_logs %}
+            <div class="logs-info">
+                <p>Total log entries: <strong>{{ recent_logs|length }}</strong></p>
+            </div>
+
+            <table class="logs-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in recent_logs %}
+                        <tr class="log-{{ log.action | lower | replace('_', '-') }}">
+                            <td class="timestamp">{{ log.timestamp_str }}</td>
+                            <td class="user">{{ log.user }}</td>
+                            <td><span class="action-badge action-{{ log.action }}">{{ log.action }}</span></td>
+                            <td class="details">{{ log.details }}</td>
+                            <td class="ip-address">{{ log.ip_address }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No activity logs found.</p>
+        {% endif %}
+    </div>
+
+    <div class="security-info card">
+        <h3><i class="fa-solid fa-shield-halved"></i> Audit Trail Information</h3>
+        <ul>
+            <li>Complete history of user actions with timestamps</li>
+            <li>Security events for login attempts and OTP verification</li>
+            <li>Request views, responses, and administrative changes</li>
+            <li>IP address capture for compliance review</li>
+            <li>Retention for system monitoring and governance</li>
+        </ul>
+    </div>
+
+    <div class="log-legend card">
+        <h3><i class="fa-solid fa-book"></i> Log Entry Reference</h3>
+        <div class="legend-grid">
+            <div class="legend-item"><span class="action-badge action-LOGIN_SUCCESS">LOGIN_SUCCESS</span><p>Successful user login with OTP verification</p></div>
+            <div class="legend-item"><span class="action-badge action-LOGIN_FAILED">LOGIN_FAILED</span><p>Failed login attempt</p></div>
+            <div class="legend-item"><span class="action-badge action-USER_REGISTERED">USER_REGISTERED</span><p>New user account created</p></div>
+            <div class="legend-item"><span class="action-badge action-OTP_VERIFIED">OTP_VERIFIED</span><p>Two-factor authentication completed</p></div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+                            <li>Complete history of user actions with timestamps</li>
+

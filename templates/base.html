@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Secure Legal Service Management{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWix+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkR4j8tqY1Z9KqQ8K/uxf+2Qf5eY5S2m3vZA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Primary navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <a href="{{ url_for('index') }}" class="brand-link">
+                    <span class="brand-mark"><i class="fa-solid fa-scale-balanced"></i></span>
+                    <span>LexShield</span>
+                </a>
+            </div>
+
+            <div class="navbar-menu">
+                {% if session.user_id %}
+                    <span class="navbar-user">{{ session.name }}</span>
+                    <span class="role-pill">Role: {{ session.role | capitalize }}</span>
+
+                    {% if session.role == 'client' %}
+                        <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+                        <a href="{{ url_for('request_service') }}" class="nav-link">Submit Request</a>
+                    {% elif session.role == 'lawyer' %}
+                        <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+                    {% elif session.role == 'admin' %}
+                        <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+                        <a href="{{ url_for('admin_users') }}" class="nav-link">Manage Users</a>
+                        <a href="{{ url_for('admin_requests') }}" class="nav-link">Manage Requests</a>
+                        <a href="{{ url_for('admin_logs') }}" class="nav-link">View Logs</a>
+                    {% endif %}
+
+                    <a href="{{ url_for('change_password') }}" class="nav-link">Change Password</a>
+                    <a href="{{ url_for('logout') }}" class="nav-link logout">Logout</a>
+                {% else %}
+                    <a href="#home" class="nav-link">Home</a>
+                    <a href="#services" class="nav-link">Services</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="#contact" class="nav-link">Contact</a>
+                    <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+                    <a href="{{ url_for('register') }}" class="nav-link nav-highlight">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container fade-in">
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <button class="close-btn" onclick="this.parentElement.style.display='none';">&times;</button>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Dynamic page content -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p><strong>Secure Legal Service Management System</strong></p>
+            <p class="footer-tags">
+                <span class="tag"><i class="fa-solid fa-lock"></i> Secure Login 🔐</span>
+                <span class="tag"><i class="fa-solid fa-shield-halved"></i> Encrypted Data</span>
+                <span class="tag"><i class="fa-solid fa-key"></i> MFA Enabled</span>
+            </p>
+            <p>Security Stack: AES-256, Bcrypt, OTP, RBAC, Audit Logging</p>
+            <p><a href="{{ url_for('terms_privacy') }}">Terms &amp; Privacy</a></p>
+            <p>&copy; 2026 LexShield Legal Tech</p>
+        </div>
+    </footer>
+</body>
+</html>

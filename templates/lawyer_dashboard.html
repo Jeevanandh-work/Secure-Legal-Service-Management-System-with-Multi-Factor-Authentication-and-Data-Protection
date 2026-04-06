@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Lawyer Dashboard - Secure Legal Service Platform{% endblock %}
+
+{% block content %}
+<section class="dashboard reveal-up">
+    <!-- Dashboard top bar -->
+    <div class="dashboard-header">
+        <div>
+            <h2><i class="fa-solid fa-scale-balanced"></i> Lawyer Dashboard</h2>
+            <p>Welcome, <strong>{{ user_name }}</strong></p>
+        </div>
+        <div class="header-actions">
+            <span class="tag"><i class="fa-solid fa-id-badge"></i> Role: Lawyer</span>
+            <span class="tag"><i class="fa-solid fa-gavel"></i> Assigned: {{ requests|length }}</span>
+        </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="stats-grid">
+        <article class="stat-card legal">
+            <i class="fa-solid fa-folder-tree"></i>
+            <div>
+                <h4>{{ requests|length }}</h4>
+                <p>Assigned Cases</p>
+            </div>
+        </article>
+        <article class="stat-card secure">
+            <i class="fa-solid fa-user-shield"></i>
+            <div>
+                <h4>Restricted</h4>
+                <p>Role-Based Access</p>
+            </div>
+        </article>
+        <article class="stat-card progress">
+            <i class="fa-solid fa-list-check"></i>
+            <div>
+                <h4>Action</h4>
+                <p>Respond & Update</p>
+            </div>
+        </article>
+    </div>
+
+    <!-- Filter + case table -->
+    <div class="card">
+        <h3><i class="fa-solid fa-briefcase"></i> Assigned Legal Requests</h3>
+
+        <form method="GET" class="filter-form">
+            <select name="case_type">
+                <option value="">All Case Types</option>
+                <option value="criminal" {% if selected_case_type == 'criminal' %}selected{% endif %}>Criminal</option>
+                <option value="civil" {% if selected_case_type == 'civil' %}selected{% endif %}>Civil</option>
+                <option value="family" {% if selected_case_type == 'family' %}selected{% endif %}>Family</option>
+                <option value="corporate" {% if selected_case_type == 'corporate' %}selected{% endif %}>Corporate</option>
+                <option value="intellectual" {% if selected_case_type == 'intellectual' %}selected{% endif %}>Intellectual Property</option>
+                <option value="immigration" {% if selected_case_type == 'immigration' %}selected{% endif %}>Immigration</option>
+                <option value="employment" {% if selected_case_type == 'employment' %}selected{% endif %}>Employment</option>
+                <option value="real_estate" {% if selected_case_type == 'real_estate' %}selected{% endif %}>Real Estate</option>
+                <option value="other" {% if selected_case_type == 'other' %}selected{% endif %}>Other</option>
+            </select>
+
+            <select name="status">
+                <option value="">All Status</option>
+                <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="pending_client_action" {% if selected_status == 'pending_client_action' %}selected{% endif %}>Pending Client Action</option>
+                <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+
+            <button type="submit" class="btn btn-sm btn-primary">Apply Filter</button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-secondary">Reset</a>
+        </form>
+        
+        {% if requests %}
+            <table class="requests-table">
+                <thead>
+                    <tr>
+                        <th>Case Type</th>
+                        <th>Client</th>
+                        <th>Status</th>
+                        <th>Assigned</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in requests %}
+                        <tr>
+                            <td>{{ request.case_type }}</td>
+                            <td>{{ request.user_email }}</td>
+                            <td>
+                                <span class="status-badge status-{{ request.status }}">
+                                    {{ request.status | replace('_', ' ') | title }}
+                                </span>
+                            </td>
+                            <td>{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('view_request', request_id=request._id) }}" class="btn btn-sm btn-info">View</a>
+                                <a href="{{ url_for('respond_request', request_id=request._id) }}" class="btn btn-sm btn-primary">Respond</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty-state">
+                <p>No requests assigned to you yet.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</section>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Client Dashboard - Secure Legal Service Platform{% endblock %}
+
+{% block content %}
+<section class="dashboard reveal-up">
+    <!-- Dashboard heading and quick action -->
+    <div class="dashboard-header">
+        <div>
+            <h2><i class="fa-solid fa-user"></i> Client Dashboard</h2>
+            <p>Welcome back, <strong>{{ user_name }}</strong></p>
+        </div>
+        <div class="header-actions">
+            <span class="tag"><i class="fa-solid fa-id-badge"></i> Role: Client</span>
+            <a href="{{ url_for('request_service') }}" class="btn btn-primary">Submit Request</a>
+        </div>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="stats-grid">
+        <article class="stat-card legal">
+            <i class="fa-solid fa-folder-open"></i>
+            <div>
+                <h4>{{ requests|length }}</h4>
+                <p>Total Requests</p>
+            </div>
+        </article>
+        <article class="stat-card secure">
+            <i class="fa-solid fa-shield-halved"></i>
+            <div>
+                <h4>Protected</h4>
+                <p>Encrypted Data</p>
+            </div>
+        </article>
+        <article class="stat-card progress">
+            <i class="fa-solid fa-chart-line"></i>
+            <div>
+                <h4>Tracked</h4>
+                <p>Status Monitoring</p>
+            </div>
+        </article>
+    </div>
+
+    <!-- Requests table -->
+    <div class="card">
+        <h3><i class="fa-solid fa-briefcase"></i> Your Legal Requests</h3>
+
+        {% if requests %}
+            <table class="requests-table">
+                <thead>
+                    <tr>
+                        <th>Case Type</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in requests %}
+                        <tr>
+                            <td>{{ request.case_type }}</td>
+                            <td>
+                                <span class="status-badge status-{{ request.status }}">
+                                    {{ request.status | replace('_', ' ') | title }}
+                                </span>
+                            </td>
+                            <td>{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('view_request', request_id=request._id) }}" class="btn btn-sm btn-info">View</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty-state">
+                <p>No requests submitted yet.</p>
+                <a href="{{ url_for('request_service') }}" class="btn btn-primary">Submit First Request</a>
+            </div>
+        {% endif %}
+    </div>
+
+</section>
+{% endblock %}
