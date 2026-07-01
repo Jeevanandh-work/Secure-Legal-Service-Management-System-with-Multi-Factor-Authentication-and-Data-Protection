@@ -36,6 +36,15 @@
                 <span class="value">{{ request.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
             </div>
             {% endif %}
+
+            <div class="info-row">
+                <span class="label">Digital Signature</span>
+                {% if request.signature_valid %}
+                <span class="status-badge status-completed">Verified</span>
+                {% else %}
+                <span class="status-badge status-rejected">Invalid / Tampered</span>
+                {% endif %}
+            </div>
         </div>
 
         <div class="case-description">
@@ -43,7 +52,7 @@
             <div class="description-content">{{ request.description }}</div>
 
             <div class="encryption-notice">
-                <i class="fa-solid fa-lock"></i> This case description was encrypted with AES-256 before storage and decrypted securely for viewing.
+                <i class="fa-solid fa-lock"></i> This case description uses hybrid protection (AES data encryption with RSA key protection) and signature integrity checks.
             </div>
         </div>
     </div>

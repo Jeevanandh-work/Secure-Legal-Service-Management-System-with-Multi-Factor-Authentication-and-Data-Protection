@@ -24,16 +24,20 @@ from datetime import datetime, timedelta
 from functools import wraps
 import bcrypt
 import os
+import base64
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables and prefer values from .env for consistency.
+load_dotenv(override=True)
 
 # Import custom modules
 from config import Config, DevelopmentConfig
 from utils.encryption import EncryptionManager
 from utils.otp import OTPManager
 from utils.auth import AuthManager, login_required, admin_required, lawyer_required, validate_input
+from utils.rsa_crypto import RSACryptoManager
+from utils.signature import SignatureManager
+from utils.diffie_hellman import DiffieHellmanDemo
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -84,8 +88,17 @@ otp_manager = OTPManager({
     'MAIL_PASSWORD': app.config['MAIL_PASSWORD'],
     'OTP_LENGTH': app.config['OTP_LENGTH'],
     'OTP_EXPIRY_MINUTES': app.config['OTP_EXPIRY_MINUTES'],
-    'OTP_MAX_ATTEMPTS': app.config['OTP_MAX_ATTEMPTS']
+    'OTP_MAX_ATTEMPTS': app.config['OTP_MAX_ATTEMPTS'],
+    'OTP_ENCRYPTION_KEY': app.config['OTP_ENCRYPTION_KEY']
 })
+
+# Advanced crypto modules (academic demo integration).
+rsa_manager = RSACryptoManager(
+    app.config['RSA_PRIVATE_KEY_PATH'],
+    app.config['RSA_PUBLIC_KEY_PATH']
+)
+signature_manager = SignatureManager(app.config['SIGNATURE_KEYS_DIR'])
+dh_demo = DiffieHellmanDemo()
 
 
 # ============================================================================
@@ -212,6 +225,22 @@ def login():
             if user['role'] == 'admin' and user['email'].strip().lower() != allowed_admin_email:
                 flash('This admin account is not authorized for admin access.', 'error')
                 return redirect(url_for('login'))
+
+            # Diffie-Hellman key exchange demo executed at login time.
+            if app.config.get('ENABLE_DH_DEMO', True):
+                try:
+                    dh_info = dh_demo.perform_key_exchange()
+                    session['dh_demo_shared_secret'] = dh_info['shared_secret_b64']
+                    session['dh_demo_aes_key'] = dh_info['derived_aes_key_b64']
+
+                    # Use derived key for a tiny AES demo artifact (presentation purpose).
+                    derived_key = base64.b64decode(dh_info['derived_aes_key_b64'])
+                    dh_aes = EncryptionManager(derived_key)
+                    session['dh_demo_cipher'] = dh_aes.encrypt(f"dh-demo:{user['email']}")
+
+                    auth_manager._log_action(user['email'], 'DH_KEY_EXCHANGED', 'Demo Diffie-Hellman key exchange completed')
+                except Exception as dh_error:
+                    auth_manager._log_action(user['email'], 'DH_KEY_EXCHANGE_FAILED', f'Demo DH failed: {dh_error}')
             
             # Store user info temporarily (before OTP verification)
             session['temp_user_id'] = user['id']
@@ -295,8 +324,7 @@ def verify_otp():
             return redirect(url_for('verify_otp'))
     
     email = session.get('temp_user_email', '')
-    debug_otp = session.get('otp_debug')
-    return render_template('verify_otp.html', email=email, debug_otp=debug_otp)
+    return render_template('verify_otp.html', email=email)
 
 
 @app.route('/logout')
@@ -414,6 +442,10 @@ def dashboard():
         pending_requests_count = db['requests'].count_documents({'status': 'pending'})
         
         recent_logs = list(db['logs'].find().sort('timestamp', -1).limit(10))
+        # Admin-only academic demo: preview latest requests with encrypted and
+        # decrypted descriptions for audit/testing verification.
+        demo_requests_raw = list(db['requests'].find().sort('created_at', -1).limit(5))
+        demo_requests = _build_admin_request_demo_rows(demo_requests_raw)
         
         return render_template('admin_dashboard.html',
                              user_name=session.get('name'),
@@ -421,7 +453,8 @@ def dashboard():
                              requests_count=requests_count,
                              logs_count=logs_count,
                              pending_requests_count=pending_requests_count,
-                             recent_logs=recent_logs)
+                             recent_logs=recent_logs,
+                             demo_requests=demo_requests)
 
 
 @app.route('/request-service', methods=['GET', 'POST'])
@@ -459,6 +492,21 @@ def request_service():
         try:
             # ENCRYPTION POINT: sensitive case description is AES-encrypted before storage.
             encrypted_description = encryption_manager.encrypt(data['description'])
+
+            # RSA hybrid encryption demo (AES data key encrypted by RSA public key).
+            hybrid_payload = rsa_manager.hybrid_encrypt_text(data['description'])
+
+            created_at = datetime.utcnow()
+
+            # Digital signature: sign canonical request payload with submitter key.
+            signature_payload = {
+                'user_id': session.get('user_id'),
+                'case_type': data['case_type'],
+                'description': data['description'],
+                'created_at': created_at.isoformat()
+            }
+            request_signature = signature_manager.sign_payload(session.get('user_id'), signature_payload)
+            request_hash = signature_manager.payload_hash(signature_payload)
             
             # Create request document
             request_doc = {
@@ -466,9 +514,13 @@ def request_service():
                 'user_email': session.get('email'),
                 'case_type': data['case_type'],
                 'description_encrypted': encrypted_description,  # ENCRYPTED!
+                'description_hybrid': rsa_manager.to_json(hybrid_payload),
+                'signature': request_signature,
+                'signature_hash': request_hash,
+                'signer_user_id': session.get('user_id'),
                 'status': 'pending',
-                'created_at': datetime.utcnow(),
-                'updated_at': datetime.utcnow()
+                'created_at': created_at,
+                'updated_at': created_at
             }
             
             # Insert into database
@@ -534,13 +586,35 @@ def view_request(request_id):
             return redirect(url_for('dashboard'))
         
         # DECRYPTION POINT: decrypt only for authorized viewer at request time.
-        if 'description_encrypted' in request_doc:
+        if request_doc.get('description_hybrid'):
+            try:
+                hybrid_payload = rsa_manager.from_json(request_doc['description_hybrid'])
+                request_doc['description'] = rsa_manager.hybrid_decrypt_text(hybrid_payload)
+            except Exception:
+                request_doc['description'] = '[Hybrid decryption failed]'
+        elif 'description_encrypted' in request_doc:
             try:
                 request_doc['description'] = encryption_manager.decrypt(
                     request_doc['description_encrypted']
                 )
             except:
                 request_doc['description'] = '[Decryption failed]'
+
+        # Verify request signature to detect tampering (flag on mismatch).
+        request_doc['signature_valid'] = True
+        if request_doc.get('signature') and request_doc.get('created_at'):
+            created_at_str = request_doc['created_at'].isoformat() if hasattr(request_doc['created_at'], 'isoformat') else str(request_doc['created_at'])
+            verify_payload = {
+                'user_id': request_doc.get('user_id'),
+                'case_type': request_doc.get('case_type'),
+                'description': request_doc.get('description', ''),
+                'created_at': created_at_str,
+            }
+            signer_id = request_doc.get('signer_user_id') or request_doc.get('user_id')
+            request_doc['signature_valid'] = signature_manager.verify_payload(signer_id, verify_payload, request_doc['signature'])
+
+            if not request_doc['signature_valid']:
+                flash('Integrity warning: digital signature verification failed for this request.', 'warning')
         
         # Log access
         auth_manager._log_action(
@@ -634,13 +708,35 @@ def respond_request(request_id):
             return redirect(url_for('dashboard'))
         
         # Decrypt description
-        if 'description_encrypted' in request_doc:
+        if request_doc.get('description_hybrid'):
+            try:
+                hybrid_payload = rsa_manager.from_json(request_doc['description_hybrid'])
+                request_doc['description'] = rsa_manager.hybrid_decrypt_text(hybrid_payload)
+            except Exception:
+                request_doc['description'] = '[Hybrid decryption failed]'
+        elif 'description_encrypted' in request_doc:
             try:
                 request_doc['description'] = encryption_manager.decrypt(
                     request_doc['description_encrypted']
                 )
             except:
                 request_doc['description'] = '[Decryption failed]'
+
+        # Verify signature and flag potential tampering.
+        request_doc['signature_valid'] = True
+        if request_doc.get('signature') and request_doc.get('created_at'):
+            created_at_str = request_doc['created_at'].isoformat() if hasattr(request_doc['created_at'], 'isoformat') else str(request_doc['created_at'])
+            verify_payload = {
+                'user_id': request_doc.get('user_id'),
+                'case_type': request_doc.get('case_type'),
+                'description': request_doc.get('description', ''),
+                'created_at': created_at_str,
+            }
+            signer_id = request_doc.get('signer_user_id') or request_doc.get('user_id')
+            request_doc['signature_valid'] = signature_manager.verify_payload(signer_id, verify_payload, request_doc['signature'])
+
+            if not request_doc['signature_valid']:
+                flash('Integrity warning: signature validation failed. Data may be tampered.', 'warning')
         
         request_doc['_id'] = str(request_doc['_id'])
         return render_template('respond_request.html', request=request_doc)
@@ -856,14 +952,20 @@ def activate_user(user_id):
 @app.route('/admin/requests')
 @admin_required
 def admin_requests():
-    """Admin: View all legal requests and assignment status."""
+    """Admin: View all legal requests and assignment status.
+
+    Academic security demo note:
+    This view intentionally shows both encrypted and decrypted case descriptions,
+    but ONLY for admins. RBAC is enforced by @admin_required and any non-admin
+    request receives HTTP 403.
+    """
     requests_data = list(db['requests'].find().sort('created_at', -1))
+    requests_data = _build_admin_request_demo_rows(requests_data)
     lawyers = list(db['users'].find({'role': 'lawyer', 'is_active': True}, {'name': 1, 'email': 1}))
 
     lawyer_map = {str(l['_id']): l for l in lawyers}
 
     for req in requests_data:
-        req['_id'] = str(req['_id'])
         assigned_id = req.get('assigned_lawyer_id')
         req['assigned_lawyer_name'] = lawyer_map.get(assigned_id, {}).get('name', 'Unassigned') if assigned_id else 'Unassigned'
 
@@ -871,6 +973,72 @@ def admin_requests():
         lawyer['_id'] = str(lawyer['_id'])
 
     return render_template('admin_requests.html', requests=requests_data, lawyers=lawyers)
+
+
+def _build_admin_request_demo_rows(requests_data):
+    """Prepare request rows with encrypted/decrypted values for admin-only views.
+
+    Security note:
+    Decrypted text is included strictly for admin testing/audit demonstration.
+    Non-admin users are blocked by RBAC before this helper is used.
+    """
+    users = list(db['users'].find({}, {'name': 1, 'email': 1}))
+    user_map = {str(u['_id']): u for u in users}
+    user_email_map = {str(u.get('email', '')).strip().lower(): u for u in users}
+
+    prepared_rows = []
+    for req in requests_data:
+        req = dict(req)
+        req['_id'] = str(req['_id'])
+        req['status'] = req.get('status', 'pending')
+
+        # Client identity enrichment for admin audit readability.
+        client_user = user_map.get(str(req.get('user_id', '')))
+        if not client_user:
+            client_user = user_email_map.get(str(req.get('user_email', '')).strip().lower())
+        req['client_name'] = (client_user or {}).get('name', 'Unknown Client')
+
+        # Decryption point (admin-only): render both encrypted and decrypted text
+        # for academic demonstration and auditing purposes.
+        req['encrypted_description'] = req.get('description_hybrid') or req.get('description_encrypted') or '[No encrypted payload]'
+        req['decrypted_description'] = '[No encrypted description available]'
+        if req.get('description_hybrid'):
+            try:
+                hybrid_payload = rsa_manager.from_json(req['description_hybrid'])
+                req['decrypted_description'] = rsa_manager.hybrid_decrypt_text(hybrid_payload)
+            except Exception:
+                req['decrypted_description'] = '[Hybrid decryption failed]'
+        elif req.get('description_encrypted'):
+            try:
+                req['decrypted_description'] = encryption_manager.decrypt(req['description_encrypted'])
+            except Exception:
+                req['decrypted_description'] = '[AES decryption failed]'
+        elif req.get('description'):
+            # Legacy/plaintext fallback for old records created before encryption demo fields.
+            req['decrypted_description'] = str(req.get('description'))
+
+        if not str(req.get('decrypted_description', '')).strip():
+            req['decrypted_description'] = '[Decrypted output is empty]'
+
+        # Signature verification status for tamper-detection visibility in admin panel.
+        req['signature_status'] = 'pending'
+        if req.get('signature') and req.get('created_at'):
+            created_at_obj = req.get('created_at')
+            created_at_str = created_at_obj.isoformat() if hasattr(created_at_obj, 'isoformat') else str(created_at_obj)
+            verify_payload = {
+                'user_id': req.get('user_id'),
+                'case_type': req.get('case_type'),
+                'description': req.get('decrypted_description', ''),
+                'created_at': created_at_str,
+            }
+            signer_id = req.get('signer_user_id') or req.get('user_id')
+            req['signature_status'] = 'valid' if signature_manager.verify_payload(signer_id, verify_payload, req['signature']) else 'invalid'
+
+        created_at = req.get('created_at')
+        req['created_at_str'] = created_at.strftime('%Y-%m-%d %H:%M:%S') if hasattr(created_at, 'strftime') else str(created_at)
+        prepared_rows.append(req)
+
+    return prepared_rows
 
 
 @app.route('/admin/assign-lawyer/<request_id>', methods=['POST'])
@@ -1006,5 +1174,14 @@ if __name__ == '__main__':
         with app.app_context():
             initialize_database()
     
-    # Run Flask development server
-    app.run(debug=True, host='127.0.0.1', port=5000, use_reloader=False)
+    # Run Flask server with optional HTTPS certificate context.
+    # Generate a self-signed cert for demo:
+    # openssl req -x509 -newkey rsa:2048 -keyout certs/key.pem -out certs/cert.pem -days 365 -nodes
+    cert_file = app.config.get('SSL_CERT_FILE')
+    key_file = app.config.get('SSL_KEY_FILE')
+    enable_https = app.config.get('ENABLE_HTTPS', False)
+
+    if enable_https and cert_file and key_file and os.path.exists(cert_file) and os.path.exists(key_file):
+        app.run(debug=True, host='127.0.0.1', port=5000, use_reloader=False, ssl_context=(cert_file, key_file))
+    else:
+        app.run(debug=True, host='127.0.0.1', port=5000, use_reloader=False)

@@ -81,6 +81,73 @@
         {% endif %}
     </div>
 
+    <!-- Admin-only crypto demonstration panel -->
+    <div class="card">
+        <div class="section-title-wrap">
+            <h3><i class="fa-solid fa-lock"></i> Encrypted vs Decrypted Case Demo</h3>
+            <a href="{{ url_for('admin_requests') }}" class="btn btn-sm btn-secondary">Open Full Requests View</a>
+        </div>
+        <p class="form-description">
+            For academic security demonstration and audit testing only: this panel exposes encrypted and decrypted request content to admins.
+        </p>
+
+        {% if demo_requests %}
+            <div class="header-actions" style="margin-bottom: 0.6rem;">
+                <button type="button" id="toggleAllDecrypted" class="btn btn-sm btn-secondary">Show All Decrypted Text</button>
+            </div>
+            <table class="requests-table">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Client</th>
+                        <th>Case Type</th>
+                        <th>Encrypted</th>
+                        <th>Decrypted</th>
+                        <th>Status</th>
+                        <th>Signature</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in demo_requests %}
+                        <tr>
+                            <td><span class="mono-id">{{ request._id }}</span></td>
+                            <td>
+                                <strong>{{ request.client_name }}</strong>
+                                <div class="value">{{ request.user_email }}</div>
+                            </td>
+                            <td>{{ request.case_type | title }}</td>
+                            <td><pre class="crypto-code">{{ request.encrypted_description }}</pre></td>
+                            <td>
+                                <details class="decrypt-toggle">
+                                    <summary class="btn btn-sm btn-secondary">View Decrypted Text</summary>
+                                    <div class="decrypted-text">{{ request.decrypted_description }}</div>
+                                </details>
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ request.status }}">
+                                    {{ request.status | replace('_', ' ') | title }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if request.signature_status == 'valid' %}
+                                    <span class="status-badge signature-valid">Signature Valid</span>
+                                {% elif request.signature_status == 'invalid' %}
+                                    <span class="status-badge signature-invalid">Signature Invalid</span>
+                                {% else %}
+                                    <span class="status-badge signature-pending">Signature Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ request.created_at_str }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No request records available yet for crypto demonstration.</p>
+        {% endif %}
+    </div>
+
     <!-- Admin action row -->
     <div class="admin-actions card">
         <h3><i class="fa-solid fa-gears"></i> Administrator Actions</h3>
@@ -93,4 +160,30 @@
     </div>
 
 </section>
+<script>
+    // Admin-only helper for academic demo: quickly reveal/hide all decrypted values.
+    (function () {
+        const toggleBtn = document.getElementById('toggleAllDecrypted');
+        if (!toggleBtn) return;
+
+        const decryptPanels = Array.from(document.querySelectorAll('.decrypt-toggle'));
+        if (!decryptPanels.length) {
+            toggleBtn.disabled = true;
+            return;
+        }
+
+        let allOpen = false;
+        toggleBtn.addEventListener('click', function () {
+            allOpen = !allOpen;
+            decryptPanels.forEach(function (panel) {
+                if (allOpen) {
+                    panel.setAttribute('open', 'open');
+                } else {
+                    panel.removeAttribute('open');
+                }
+            });
+            toggleBtn.textContent = allOpen ? 'Hide All Decrypted Text' : 'Show All Decrypted Text';
+        });
+    })();
+</script>
 {% endblock %}

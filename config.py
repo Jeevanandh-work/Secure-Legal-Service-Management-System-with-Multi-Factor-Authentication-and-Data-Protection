@@ -8,6 +8,9 @@ import os
 from datetime import timedelta
 
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 def _load_encryption_key():
     """Load a 32-byte AES key from the environment or use a safe default."""
     key_value = os.environ.get('ENCRYPTION_KEY')
@@ -38,6 +41,24 @@ class Config:
     # AES encryption key (32 bytes = 256-bit encryption)
     # SECURITY NOTE: Store this in a key management system in production
     ENCRYPTION_KEY = _load_encryption_key()
+
+    # OTP payload encryption key (AES-256). Reuses ENCRYPTION_KEY if not explicitly set.
+    OTP_ENCRYPTION_KEY = os.environ.get('OTP_ENCRYPTION_KEY', ENCRYPTION_KEY.decode('utf-8'))
+
+    # RSA key paths for hybrid encryption demo.
+    RSA_PRIVATE_KEY_PATH = os.environ.get('RSA_PRIVATE_KEY_PATH', os.path.join(BASE_DIR, 'keys', 'rsa_private.pem'))
+    RSA_PUBLIC_KEY_PATH = os.environ.get('RSA_PUBLIC_KEY_PATH', os.path.join(BASE_DIR, 'keys', 'rsa_public.pem'))
+
+    # Per-user digital signature key directory.
+    SIGNATURE_KEYS_DIR = os.environ.get('SIGNATURE_KEYS_DIR', os.path.join(BASE_DIR, 'keys', 'signatures'))
+
+    # Diffie-Hellman demonstration switch.
+    ENABLE_DH_DEMO = os.environ.get('ENABLE_DH_DEMO', 'true').strip().lower() == 'true'
+
+    # HTTPS certificate support (self-signed cert in demo).
+    SSL_CERT_FILE = os.environ.get('SSL_CERT_FILE', os.path.join(BASE_DIR, 'certs', 'cert.pem'))
+    SSL_KEY_FILE = os.environ.get('SSL_KEY_FILE', os.path.join(BASE_DIR, 'certs', 'key.pem'))
+    ENABLE_HTTPS = os.environ.get('ENABLE_HTTPS', 'false').strip().lower() == 'true'
     
     # Email Configuration (Gmail SMTP for OTP)
     MAIL_SERVER = 'smtp.gmail.com'

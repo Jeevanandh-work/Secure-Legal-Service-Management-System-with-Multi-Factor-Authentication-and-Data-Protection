@@ -15,12 +15,6 @@
             We sent a 6-digit code to <strong>{{ email }}</strong>
         </p>
 
-        {% if debug_otp %}
-        <div class="alert alert-info">
-            Development fallback OTP: <strong>{{ debug_otp }}</strong>
-        </div>
-        {% endif %}
-
         <form method="POST" class="otp-form">
             <div class="form-group">
                 <label for="otp">Enter 6-Digit OTP:</label>

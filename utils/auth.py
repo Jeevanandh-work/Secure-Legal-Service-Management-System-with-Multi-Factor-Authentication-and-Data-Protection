@@ -7,7 +7,7 @@ SECURITY: All passwords are hashed using bcrypt (never stored in plain text)
 import bcrypt
 import os
 from functools import wraps
-from flask import session, redirect, url_for, abort, request
+from flask import session, redirect, url_for, abort, request, current_app
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 
@@ -322,7 +322,7 @@ def admin_required(f):
         if session.get('role') != 'admin':
             abort(403)
 
-        allowed_admin_email = os.environ.get('ADMIN_ALLOWED_EMAIL', 'admin@example.com').strip().lower()
+        allowed_admin_email = current_app.config.get('ADMIN_ALLOWED_EMAIL', 'admin@example.com').strip().lower()
         if session.get('email', '').strip().lower() != allowed_admin_email:
             abort(403)
         

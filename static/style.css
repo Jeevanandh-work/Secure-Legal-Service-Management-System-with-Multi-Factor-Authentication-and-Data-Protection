@@ -755,6 +755,12 @@ tbody tr:hover {
     border-color: #a9e3c4;
 }
 
+.status-resolved {
+    background: var(--success-bg);
+    color: var(--success-tx);
+    border-color: #a9e3c4;
+}
+
 .status-rejected,
 .status-inactive,
 .action-LOGIN_FAILED {
@@ -884,6 +890,171 @@ tbody tr:hover {
     margin-bottom: 0.6rem;
 }
 
+.mono-id {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 0.75rem;
+    background: #eef2f9;
+    color: #21304d;
+    border: 1px solid #d7deea;
+    border-radius: 6px;
+    padding: 0.22rem 0.38rem;
+    display: inline-block;
+}
+
+.crypto-code {
+    margin: 0;
+    max-width: 380px;
+    max-height: 140px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 0.72rem;
+    line-height: 1.42;
+    background: #0e1629;
+    color: #d8e7ff;
+    border: 1px solid #1f335f;
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.decrypt-toggle {
+    min-width: 240px;
+}
+
+.decrypt-toggle summary {
+    list-style: none;
+    margin-bottom: 0.45rem;
+}
+
+.decrypt-toggle summary::-webkit-details-marker {
+    display: none;
+}
+
+.decrypted-text {
+    border: 1px solid #cfd9ea;
+    border-radius: 8px;
+    background: #f7faff;
+    color: #122033;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    padding: 0.55rem;
+    max-height: 140px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-top: 0.45rem;
+    min-width: 260px;
+}
+
+.decrypted-text.hidden {
+    display: none;
+}
+
+.requests-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.requests-table {
+    min-width: 1320px;
+}
+
+.actions-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.assign-form {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.assign-form select {
+    min-width: 190px;
+}
+
+.crypto-showcase {
+    margin-top: 1rem;
+}
+
+.crypto-showcase-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+    align-items: start;
+}
+
+.crypto-column h4 {
+    margin: 0 0 0.55rem;
+    color: var(--navy-900);
+}
+
+.crypto-item {
+    border: 1px solid #dde5f2;
+    border-radius: 10px;
+    background: #fbfcff;
+    padding: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+.crypto-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.45rem;
+}
+
+.crypto-textarea,
+.decrypted-textarea {
+    width: 100%;
+    min-height: 96px;
+    max-height: 220px;
+    resize: vertical;
+    overflow: auto;
+    padding: 0.58rem 0.62rem;
+    border-radius: 8px;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 0.83rem;
+    line-height: 1.46;
+    white-space: pre-wrap;
+    word-break: break-word;
+    -webkit-text-fill-color: currentColor;
+}
+
+.crypto-textarea {
+    background: #0e1629 !important;
+    color: #d8e7ff !important;
+    border: 1px solid #1f335f;
+}
+
+.decrypted-textarea {
+    background: #f7faff !important;
+    color: #122033 !important;
+    border: 1px solid #cfd9ea;
+}
+
+.signature-valid {
+    background: var(--success-bg);
+    color: var(--success-tx);
+    border-color: #a9e3c4;
+}
+
+.signature-invalid {
+    background: var(--danger-bg);
+    color: var(--danger-tx);
+    border-color: #efb2bb;
+}
+
+.signature-pending {
+    background: var(--warning-bg);
+    color: var(--warning-tx);
+    border-color: #f1d98f;
+}
+
 /* Footer */
 .footer {
     background: linear-gradient(100deg, var(--navy-900), #0f295a);
@@ -958,6 +1129,10 @@ tbody tr:hover {
         padding: 0.7rem 0;
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .crypto-showcase-grid {
+        grid-template-columns: 1fr;
     }
 
     .navbar-menu {

@@ -18,47 +18,118 @@
 
     <div class="card">
         <h3><i class="fa-solid fa-list-check"></i> Requests ({{ requests|length }})</h3>
+        <p class="form-description">
+            Academic security demonstration: encrypted and decrypted case descriptions are shown
+            only to admin users for testing and audit verification.
+        </p>
 
         {% if requests %}
-            <table class="requests-table">
-                <thead>
-                    <tr>
-                        <th>Case Type</th>
-                        <th>Client Email</th>
-                        <th>Status</th>
-                        <th>Assigned Lawyer</th>
-                        <th>Submitted</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for request in requests %}
+            <div class="requests-table-wrap">
+                <table class="requests-table">
+                    <thead>
                         <tr>
-                            <td>{{ request.case_type | title }}</td>
-                            <td>{{ request.user_email }}</td>
-                            <td>
-                                <span class="status-badge status-{{ request.status }}">
-                                    {{ request.status | replace('_', ' ') | title }}
-                                </span>
-                            </td>
-                            <td>{{ request.assigned_lawyer_name }}</td>
-                            <td>{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                            <td>
-                                <a href="{{ url_for('view_request', request_id=request._id) }}" class="btn btn-sm btn-info">View</a>
-                                <form method="POST" action="{{ url_for('assign_lawyer', request_id=request._id) }}" class="inline-form">
-                                    <select name="lawyer_id" required>
-                                        <option value="">Assign lawyer</option>
-                                        {% for lawyer in lawyers %}
-                                            <option value="{{ lawyer._id }}">{{ lawyer.name }} ({{ lawyer.email }})</option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-primary">Assign</button>
-                                </form>
-                            </td>
+                            <th>Request ID</th>
+                            <th>Client Name</th>
+                            <th>Case Type</th>
+                            <th>Status</th>
+                            <th>Signature</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                            <tr>
+                                <td><span class="mono-id">{{ request._id }}</span></td>
+                                <td>
+                                    <strong>{{ request.client_name }}</strong>
+                                    <div class="value">{{ request.user_email }}</div>
+                                </td>
+                                <td>{{ request.case_type | title }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ request.status }}">
+                                        {{ request.status | replace('_', ' ') | title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if request.signature_status == 'valid' %}
+                                        <span class="status-badge signature-valid">Signature Valid</span>
+                                    {% elif request.signature_status == 'invalid' %}
+                                        <span class="status-badge signature-invalid">Signature Invalid</span>
+                                    {% else %}
+                                        <span class="status-badge signature-pending">Signature Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ request.created_at_str }}</td>
+                                <td>
+                                    <div class="actions-stack">
+                                        <a href="{{ url_for('view_request', request_id=request._id) }}" class="btn btn-sm btn-info">View</a>
+                                        <div class="value">Assigned: {{ request.assigned_lawyer_name }}</div>
+                                        <form method="POST" action="{{ url_for('assign_lawyer', request_id=request._id) }}" class="assign-form">
+                                            <select name="lawyer_id" required>
+                                                <option value="">Assign lawyer</option>
+                                                {% for lawyer in lawyers %}
+                                                    <option value="{{ lawyer._id }}">{{ lawyer.name }} ({{ lawyer.email }})</option>
+                                                {% endfor %}
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-primary">Assign</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card crypto-showcase">
+                <h3><i class="fa-solid fa-file-shield"></i> Encryption Demonstration (Admin Only)</h3>
+                <p class="form-description">
+                    Below sections show the same requests in encrypted and decrypted forms with ID, status, and signature state for academic audit demonstration.
+                </p>
+
+                <div class="crypto-showcase-grid">
+                    <div class="crypto-column">
+                        <h4><i class="fa-solid fa-lock"></i> Encrypted Messages</h4>
+                        {% for request in requests %}
+                            <article class="crypto-item">
+                                <div class="crypto-meta">
+                                    <span class="mono-id">{{ request._id }}</span>
+                                    <span class="status-badge status-{{ request.status }}">{{ request.status | replace('_', ' ') | title }}</span>
+                                    {% if request.signature_status == 'valid' %}
+                                        <span class="status-badge signature-valid">Signature Valid</span>
+                                    {% elif request.signature_status == 'invalid' %}
+                                        <span class="status-badge signature-invalid">Signature Invalid</span>
+                                    {% else %}
+                                        <span class="status-badge signature-pending">Signature Pending</span>
+                                    {% endif %}
+                                </div>
+                                <textarea class="crypto-textarea" readonly>{{ request.encrypted_description }}</textarea>
+                            </article>
+                        {% endfor %}
+                    </div>
+
+                    <div class="crypto-column">
+                        <h4><i class="fa-solid fa-unlock"></i> Decrypted Messages</h4>
+                        {% for request in requests %}
+                            <article class="crypto-item">
+                                <div class="crypto-meta">
+                                    <span class="mono-id">{{ request._id }}</span>
+                                    <span class="status-badge status-{{ request.status }}">{{ request.status | replace('_', ' ') | title }}</span>
+                                    {% if request.signature_status == 'valid' %}
+                                        <span class="status-badge signature-valid">Signature Valid</span>
+                                    {% elif request.signature_status == 'invalid' %}
+                                        <span class="status-badge signature-invalid">Signature Invalid</span>
+                                    {% else %}
+                                        <span class="status-badge signature-pending">Signature Pending</span>
+                                    {% endif %}
+                                </div>
+                                <textarea class="decrypted-textarea" readonly>{{ request.decrypted_description }}</textarea>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         {% else %}
             <p>No legal requests found.</p>
         {% endif %}

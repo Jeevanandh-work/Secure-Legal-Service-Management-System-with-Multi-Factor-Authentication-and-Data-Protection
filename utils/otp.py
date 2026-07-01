@@ -11,6 +11,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import session
+from utils.encryption import EncryptionManager
 
 class OTPManager:
     """Manages OTP generation, storage, and validation"""
@@ -29,6 +30,11 @@ class OTPManager:
         self.otp_length = mail_config.get('OTP_LENGTH', 6)
         self.otp_expiry_minutes = mail_config.get('OTP_EXPIRY_MINUTES', 5)
         self.max_attempts = mail_config.get('OTP_MAX_ATTEMPTS', 3)
+
+        otp_key = (mail_config.get('OTP_ENCRYPTION_KEY') or '').encode('utf-8')
+        if len(otp_key) != 32:
+            otp_key = b'0123456789abcdef0123456789abcdef'
+        self.otp_crypto = EncryptionManager(otp_key)
     
     def send_otp(self, email, name="User"):
         """
@@ -50,24 +56,16 @@ class OTPManager:
         try:
             # Generate random 6-digit OTP
             otp = ''.join(random.choices(string.digits, k=self.otp_length))
+            encrypted_otp = self.otp_crypto.encrypt(otp)
             
-            # Store OTP in session with metadata
-            session['otp'] = otp
+            # Store encrypted OTP in session with metadata (no plaintext persistence)
+            session['otp_encrypted'] = encrypted_otp
             session['otp_email'] = email
             session['otp_created_at'] = datetime.utcnow().isoformat()
             session['otp_attempts'] = 0
             
-            # Send OTP via email. If SMTP is not configured in development,
-            # fall back to console output so the app remains usable for demos.
-            try:
-                self._send_email(email, otp, name)
-            except Exception as email_error:
-                session['otp_debug'] = otp
-                if self._has_placeholder_smtp_credentials():
-                    print(f"[DEV OTP] OTP for {email}: {otp}")
-                    print(f"[DEV OTP] Email fallback used because SMTP is not configured: {email_error}")
-                else:
-                    print(f"[DEV OTP] SMTP delivery failed, using debug OTP fallback for {email}: {email_error}")
+            # Enforce email-only OTP delivery.
+            self._send_email(email, encrypted_otp, name)
             
             return {
                 'success': True,
@@ -97,7 +95,7 @@ class OTPManager:
             dict: Status with 'valid' flag and 'message'
         """
         # Check if OTP exists in session
-        if 'otp' not in session:
+        if 'otp_encrypted' not in session:
             return {
                 'valid': False,
                 'message': 'No OTP request found. Please request a new OTP.'
@@ -108,9 +106,7 @@ class OTPManager:
         otp_age = datetime.utcnow() - otp_created_at
         
         if otp_age > timedelta(minutes=self.otp_expiry_minutes):
-            session.pop('otp', None)
-            session.pop('otp_email', None)
-            session.pop('otp_created_at', None)
+            self._clear_otp_session()
             return {
                 'valid': False,
                 'message': f'OTP expired. Valid for only {self.otp_expiry_minutes} minutes.'
@@ -119,22 +115,25 @@ class OTPManager:
         # Check attempt limit
         attempts = session.get('otp_attempts', 0)
         if attempts >= self.max_attempts:
-            session.pop('otp', None)
-            session.pop('otp_email', None)
-            session.pop('otp_created_at', None)
+            self._clear_otp_session()
             return {
                 'valid': False,
                 'message': f'Maximum {self.max_attempts} OTP attempts exceeded. Request new OTP.'
             }
+
+        try:
+            stored_otp = self.otp_crypto.decrypt(session.get('otp_encrypted', ''))
+        except Exception:
+            self._clear_otp_session()
+            return {
+                'valid': False,
+                'message': 'OTP data is invalid. Please request a new OTP.'
+            }
         
         # Verify OTP matches
-        if str(provided_otp) == str(session.get('otp')):
+        if str(provided_otp) == str(stored_otp):
             # OTP is valid - clear it from session
-            session.pop('otp', None)
-            session.pop('otp_email', None)
-            session.pop('otp_created_at', None)
-            session.pop('otp_attempts', None)
-            session.pop('otp_debug', None)
+            self._clear_otp_session()
             
             return {
                 'valid': True,
@@ -150,7 +149,7 @@ class OTPManager:
                 'message': f'Invalid OTP. {remaining_attempts} attempts remaining.'
             }
     
-    def _send_email(self, to_email, otp, name):
+    def _send_email(self, to_email, encrypted_otp, name):
         """
         Send OTP via Gmail SMTP
         
@@ -165,6 +164,9 @@ class OTPManager:
             name (str): User name
         """
         try:
+            # Decrypt right before composing email body.
+            otp = self.otp_crypto.decrypt(encrypted_otp)
+
             # Create email message
             message = MIMEMultipart()
             message['From'] = self.mail_username
@@ -230,18 +232,13 @@ Legal Service Platform Team
             print(f"[DEV NOTIFY] {subject} -> {to_email}: {e}")
             return {'success': False, 'message': f'Notification failed: {str(e)}'}
 
-    def _has_placeholder_smtp_credentials(self):
-        """Detect whether the app is still using example SMTP values."""
-        username = str(self.mail_username or '').strip().lower()
-        password = str(self.mail_password or '').strip().lower()
-        return (
-            not username
-            or not password
-            or username.startswith('your-')
-            or password.startswith('your-')
-            or 'example' in username
-            or 'example' in password
-        )
+    @staticmethod
+    def _clear_otp_session():
+        """Clear all OTP-related fields from session."""
+        session.pop('otp_encrypted', None)
+        session.pop('otp_email', None)
+        session.pop('otp_created_at', None)
+        session.pop('otp_attempts', None)
 
 # Global OTP manager instance
 def get_otp_manager(mail_config):

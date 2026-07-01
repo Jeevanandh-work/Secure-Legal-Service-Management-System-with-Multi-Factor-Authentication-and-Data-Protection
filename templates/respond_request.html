@@ -38,12 +38,21 @@
                         <label>Submitted</label>
                         <span>{{ request.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
                     </div>
+
+                    <div class="info-item">
+                        <label>Digital Signature</label>
+                        {% if request.signature_valid %}
+                        <span class="status-badge status-completed">Verified</span>
+                        {% else %}
+                        <span class="status-badge status-rejected">Invalid / Tampered</span>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <div class="case-description">
                     <h4><i class="fa-solid fa-file-lines"></i> Case Description</h4>
                     <div class="description-text">{{ request.description }}</div>
-                    <p class="encryption-note"><i class="fa-solid fa-lock"></i> Description was decrypted securely for your review.</p>
+                    <p class="encryption-note"><i class="fa-solid fa-lock"></i> Description was decrypted via hybrid encryption and integrity-checked with digital signature verification.</p>
                 </div>
             </div>
         </div>
